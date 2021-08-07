@@ -1,16 +1,20 @@
 from eventbrite_util import eventbrite_autobuyer
 import time
 import smtplib, ssl
+from xvfbwrapper import Xvfb
+
+vdisplay = Xvfb()
+vdisplay.start()
 
 # Input login credentials
-email = ''
+email = 'alexgutierrezelizondo@gmail.com'
 key = ''
 cardNumber=''
 expDate=''
 cvv = ''
 postal = ''
-firstName = ''
-lastName = ''
+firstName = 'Alejandro'
+lastName = 'Gutierrez'
 
 #para esto se ocupa un sender email que tenga less secure apps enabled
 notifications = False
@@ -24,10 +28,10 @@ eventUrlTest2 = "https://www.eventbrite.com/e/stock-options-trading-course-with-
 
 signIn = False
 maxSignInTries = 3
-isTest = True
+isTest = False
 maxTries = 3
 refreshRate = 3 #seconds
-numTickets = 3
+numTickets = 1
 timeout = 30 #seconds
 selfBuy = True
 
@@ -41,7 +45,7 @@ num_tries = 0
 while not success and num_tries <= maxTries:
     tac = time.perf_counter()
     success = eventbrite_autobuyer(isTest, firstName, lastName, email, key, cardNumber, expDate, 
-                                    cvv, postal, signIn, maxSignInTries, eventUrlTest2, refreshRate, 
+                                    cvv, postal, signIn, maxSignInTries, eventUrlPurdue, refreshRate, 
                                     numTickets, timeout, selfBuy)
     print('Performance: ', time.perf_counter() - tac, ' sec')
 
@@ -58,3 +62,5 @@ while not success and num_tries <= maxTries:
             server.sendmail(sender, receiver, message)
     
     num_tries += 1
+
+vdisplay.stop()

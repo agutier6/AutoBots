@@ -129,23 +129,30 @@ def eventbrite_autobuyer(isTest, firstName, lastName, email, key, cardNumber, ex
         if not firstNameBox.get_attribute("value") == firstName:
             firstNameBox.clear()
             firstNameBox.send_keys(firstName)
+        print('Typed first name')
 
         lastNameBox = wait.until(EC.presence_of_element_located((By.ID, 'buyer.N-last_name')))
         if not lastNameBox.get_attribute("value") == lastName:
             lastNameBox.clear()
             lastNameBox.send_keys(lastName)
+        print('Typed last name')
 
         emailBox = wait.until(EC.presence_of_element_located((By.ID, 'buyer.N-email')))
         if emailBox.get_attribute("value") == "":
             emailBox.send_keys(email)
             wait.until(EC.presence_of_element_located((By.ID, 'buyer.confirmEmailAddress'))).send_keys(email)
+        print('Typed email')
 
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "section[data-spec='accordion-list-item-CREDIT']"))).click()
 
         wait.until(EC.presence_of_element_located((By.ID, 'credit-card-number'))).send_keys(cardNumber)
+        print('Typed credit card no')
         wait.until(EC.presence_of_element_located((By.ID, 'expiration-date'))).send_keys(expDate)
+        print('Typed exp date')
         wait.until(EC.presence_of_element_located((By.ID, 'csc'))).send_keys(cvv)
+        print('Typed cvv')
         wait.until(EC.presence_of_element_located((By.ID, 'postal-code'))).send_keys(postal)
+        print('Typed Postal Code')
 
         ticket_inputs = get_all_ticket_inputs(driver, timeout)
         
@@ -157,6 +164,7 @@ def eventbrite_autobuyer(isTest, firstName, lastName, email, key, cardNumber, ex
                     if not ticket_input.get_attribute('value') == ticket:
                         ticket_input.clear()
                         ticket_input.send_keys(ticket)
+                    print(key + ': ' + ticket)
 
         print('Buying...')
         if not isTest:
