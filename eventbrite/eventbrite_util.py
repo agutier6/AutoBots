@@ -8,16 +8,10 @@ This program executes a bot that buys eventbrite tickets for nd vs purdue tailga
 
 TODO:
 - Add address input capability for specific events
+- add input error checking
+- unselect email spam
+- make read me
 
-BEEPs:
-Low frequency is good, high frequency is bad
-1 low beep: product available
-2 low beeps: product in cart
-3 low beeps: signed in
-4 low beeps: order succesful
-1 high beep: Cart empty retrying
-2 high beeps: timeout error
-3 high beeps: fatal error
 '''
 def find_iframe_id(driver):
     iframes = driver.find_elements_by_xpath("//iframe")
@@ -30,7 +24,39 @@ def find_iframe_id(driver):
         driver.switch_to.parent_frame()
     return None
 
-def eventbrite_autobuyer(isTest, firstName, lastName, email, key, cardNumber, expDate, cvv, postal, signIn, maxSignInTries, eventUrl, refreshRate, numTickets, timeout):
+def get_all_ticket_inputs(driver, timeout):
+    try:
+        wait = WebDriverWait(driver, timeout)
+        inputs = driver.find_elements_by_xpath("//input")
+        ticket_inputs = {'N-first_name': [], 'N-last_name': [], 'N-email': []}
+        for input in inputs:
+            for key in ticket_inputs.keys():
+                if key in input.get_attribute('id') and not 'buyer' in input.get_attribute('id'):
+                    ticket_inputs[key].append(input)
+    
+        return ticket_inputs
+    except Exception as e:
+        print(e)
+        return None
+
+
+def eventbrite_autobuyer(isTest, firstName, lastName, email, key, cardNumber, expDate, 
+                        cvv, postal, signIn, maxSignInTries, eventUrl, refreshRate, 
+                        numTickets, timeout, selfBuy):
+    if selfBuy:
+        # first ticket assigned to buyer
+        tickets = {'N-first_name': [firstName], 'N-last_name': [lastName], 'N-email': [email]}
+    else:
+        tickets = {'N-first_name': [], 'N-last_name': [], 'N-email': []}
+
+    while len(tickets['N-first_name']) < numTickets:
+        recipientFirstName = input('Recipient ' + str(len(tickets['N-first_name'])) + ' first name: ')
+        recipientLastName = input('Recipient ' + str(len(tickets['N-first_name'])) + ' last name: ')
+        recipientEmail = input('Recipient ' + str(len(tickets['N-first_name'])) + ' email: ')
+        tickets['N-first_name'].append(recipientFirstName)
+        tickets['N-last_name'].append(recipientLastName)
+        tickets['N-email'].append(recipientEmail)
+
     try: 
         # Set driver to desired webbrowser
         # WARNING: Need to download driver for the desired browser ... and the browser, obviously
@@ -121,8 +147,21 @@ def eventbrite_autobuyer(isTest, firstName, lastName, email, key, cardNumber, ex
         wait.until(EC.presence_of_element_located((By.ID, 'csc'))).send_keys(cvv)
         wait.until(EC.presence_of_element_located((By.ID, 'postal-code'))).send_keys(postal)
 
+        ticket_inputs = get_all_ticket_inputs(driver, timeout)
+        
+        if ticket_inputs:
+            for key in tickets.keys():
+                while ticket_inputs[key]:
+                    ticket_input = ticket_inputs[key].pop()
+                    ticket = tickets[key].pop()
+                    if not ticket_input.get_attribute('value') == ticket:
+                        ticket_input.clear()
+                        ticket_input.send_keys(ticket)
+
+        print('Buying...')
         if not isTest:
             wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'eds-btn--fill'))).click()
+        print('Success')
         return True
 
                 
